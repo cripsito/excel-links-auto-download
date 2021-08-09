@@ -2,10 +2,10 @@ import React, { useState, useMemo, useCallback } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
-import { useDropzone } from 'react-dropzone';
+import { useDropzone, FileWithPath } from 'react-dropzone';
 import XLSX from 'xlsx';
 
-function downloadFile(file) {
+function downloadFile(file: string) {
   // Create a link and set the URL using `createObjectURL`
   const link = document.createElement('a');
   link.style.display = 'none';
@@ -20,10 +20,10 @@ function downloadFile(file) {
   // a little while before removing it.
   setTimeout(() => {
     URL.revokeObjectURL(link.href);
-    link.parentNode.removeChild(link);
+    link.parentNode && link.parentNode.removeChild(link);
   }, 0);
 }
-function download(url, filename) {
+function download(url: string, filename: string) {
   fetch(url).then(function (t) {
     return t.blob().then((b) => {
       var a = document.createElement('a');
@@ -69,18 +69,24 @@ export default function Home() {
   const [videoLinks, setVideoLinks] = useState([]);
   const onDrop = useCallback((acceptedFiles) => {
     // Do something with the files
-    acceptedFiles.map((file) => {
+    acceptedFiles.map((file: File) => {
       console.log(file);
       var reader = new FileReader();
       reader.onload = function (e) {
-        var data = new Uint8Array(e.target.result);
-        var workbook = XLSX.read(data, { type: 'array' });
-        var first_worksheet = workbook.Sheets[workbook.SheetNames[0]];
-        var data = XLSX.utils.sheet_to_json(first_worksheet, { header: 1 });
-        console.log(data);
-        setVideoLinks(data);
+        if (e && e.target && e.target.result) {
+          var data = new Uint8Array(e.target.result as ArrayBuffer);
+          var workbook = XLSX.read(data, { type: 'array' });
+          var first_worksheet = workbook.Sheets[workbook.SheetNames[0]];
+          var dataJSON = [
+            ...XLSX.utils.sheet_to_json(first_worksheet, {
+              header: 1,
+            }),
+          ];
+          console.log(dataJSON);
+          setVideoLinks(dataJSON as any);
 
-        /* DO SOMETHING WITH workbook HERE */
+          /* DO SOMETHING WITH workbook HERE */
+        }
       };
       reader.readAsArrayBuffer(file);
     });
@@ -102,7 +108,7 @@ export default function Home() {
     }),
     [isDragActive, isDragReject, isDragAccept],
   );
-  const files = acceptedFiles.map((file) => (
+  const files = acceptedFiles.map((file: FileWithPath) => (
     <li key={file.path}>
       {file.path} - {file.size} bytes
     </li>
@@ -136,7 +142,7 @@ export default function Home() {
 
         <div {...getRootProps({ style })}>
           <input {...getInputProps()} />
-          <p>Drag 'n' drop some files here, or click to select files</p>
+          <p>Drag and drop some files here, or click to select files</p>
         </div>
         <ul>{files}</ul>
         {videoLinks.length > 0 && (
