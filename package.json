@@ -1,5 +1,5 @@
 {
-  "name": "rick-files",
+  "name": "excel-links-auto-download",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,12 +11,17 @@
   "dependencies": {
     "next": "11.0.1",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react-dom": "17.0.2",
+    "react-dropzone": "^11.3.4",
+    "xlsx": "^0.17.0"
   },
   "devDependencies": {
     "@types/react": "17.0.16",
+    "autoprefixer": "^10.3.1",
     "eslint": "7.32.0",
     "eslint-config-next": "11.0.1",
+    "postcss": "^8.3.6",
+    "tailwindcss": "^2.2.7",
     "typescript": "4.3.5"
   }
 }
