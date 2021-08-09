@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, CSSProperties } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
@@ -37,7 +37,6 @@ function download(url: string, filename: string) {
 const baseStyle = {
   flex: 1,
   display: 'flex',
-  flexDirection: 'column',
   alignItems: 'center',
   padding: '20px',
   borderWidth: 2,
@@ -99,7 +98,7 @@ export default function Home() {
     isDragReject,
     acceptedFiles,
   } = useDropzone({ accept: '.xlsx', onDrop });
-  const style = useMemo(
+  const style: CSSProperties = useMemo(
     () => ({
       ...baseStyle,
       ...(isDragActive ? activeStyle : {}),
