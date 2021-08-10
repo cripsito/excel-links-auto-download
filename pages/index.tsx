@@ -47,7 +47,7 @@ const baseStyle = {
   color: '#bdbdbd',
   outline: 'none',
   transition: 'border .24s ease-in-out',
-  maxHeight: '180px',
+  maxHeight: '160px',
   width: '100%',
   marginTop: '20px',
 };
@@ -135,17 +135,34 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>Excel Links auto download</h1>
+        <h1 className={styles.title}>
+          <span className="rounded-3xl bg-green-700 uppercase px-5 py-1 font-bold mr-5 text-green-50">
+            Excel
+          </span>
+          Links Auto Download
+        </h1>
 
-        <p className={styles.description}>To start, drop your excel file</p>
+        <p className="mt-10 text-3xl">To start, drop your excel file</p>
 
         <div {...getRootProps({ style })}>
           <input {...getInputProps()} />
           <p>Drag and drop some files here, or click to select files</p>
         </div>
-        <ul>{files}</ul>
+        <ul className="mt-10">{files}</ul>
         {videoLinks.length > 0 && (
-          <button onClick={startDownload}>Start Downloading</button>
+          <button
+            onClick={startDownload}
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center mt-10"
+          >
+            <svg
+              className="fill-current w-4 h-4 mr-2"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z" />
+            </svg>
+            Start Downloading
+          </button>
         )}
       </main>
 
