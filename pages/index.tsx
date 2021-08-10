@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, CSSProperties } from 'react';
-
+import fetchProgress from '../utils/fetch-progress';
 import { eachLimit } from 'async';
 import Head from 'next/head';
 import Image from 'next/image';
@@ -7,10 +7,6 @@ import styles from '../styles/Home.module.css';
 import { useDropzone, FileWithPath } from 'react-dropzone';
 import XLSX from 'xlsx';
 import dynamic from 'next/dynamic';
-
-const fetchProgress = dynamic(() => import('fetch-progress') as any, {
-  ssr: false,
-});
 
 function downloadFile(file: string) {
   // Create a link and set the URL using `createObjectURL`
