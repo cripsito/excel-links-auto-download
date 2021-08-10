@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useCallback, CSSProperties } from 'react';
+import fetchProgress from 'fetch-progress';
+import { eachLimit } from 'async';
 import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
@@ -23,21 +25,36 @@ function downloadFile(file: string) {
     link.parentNode && link.parentNode.removeChild(link);
   }, 0);
 }
-function download(url: string, filename: string) {
-  fetch(url).then(function (t) {
-    return t.blob().then((b) => {
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(b);
-      a.setAttribute('download', filename);
-      a.click();
+function download(url: string, filename: string, done: any) {
+  fetch(url)
+    .then(
+      fetchProgress({
+        onProgress(progress) {
+          console.log({ progress });
+        },
+        onError(err) {
+          console.log(err);
+        },
+        onComplete() {
+          done();
+        },
+      }),
+    )
+    .then(function (t) {
+      return t.blob().then((b) => {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(b);
+        a.setAttribute('download', filename);
+        a.click();
+      });
     });
-  });
 }
 
 const baseStyle = {
   flex: 1,
   display: 'flex',
   alignItems: 'center',
+  textAling: 'center',
   padding: '20px',
   borderWidth: 2,
   borderRadius: 2,
@@ -50,19 +67,11 @@ const baseStyle = {
   maxHeight: '160px',
   width: '100%',
   marginTop: '20px',
+  flexDirection: 'column' as 'column',
 };
-
-const activeStyle = {
-  borderColor: '#2196f3',
-};
-
-const acceptStyle = {
-  borderColor: '#00e676',
-};
-
-const rejectStyle = {
-  borderColor: '#ff1744',
-};
+const activeStyle = { borderColor: '#2196f3' };
+const acceptStyle = { borderColor: '#00e676' };
+const rejectStyle = { borderColor: '#ff1744' };
 
 export default function Home() {
   const [videoLinks, setVideoLinks] = useState([]);
@@ -97,7 +106,7 @@ export default function Home() {
     isDragAccept,
     isDragReject,
     acceptedFiles,
-  } = useDropzone({ accept: '.xlsx', onDrop });
+  } = useDropzone({ accept: '.xlsx', onDrop, maxFiles: 1 });
   const style: CSSProperties = useMemo(
     () => ({
       ...baseStyle,
@@ -109,20 +118,21 @@ export default function Home() {
   );
   const files = acceptedFiles.map((file: FileWithPath) => (
     <li key={file.path}>
-      {file.path} - {file.size} bytes
+      <span className="rounded-lg bg-gray-300 uppercase px-5 py-1 font-bold mr-5 text-white">
+        {file.path} - {file.size} bytes
+      </span>
+      <span className="rounded-3xl bg-green-700 uppercase px-5 py-1 font-bold mr-5 text-green-50">
+        {videoLinks.length} links
+      </span>
     </li>
   ));
   const startDownload = useCallback(() => {
     if (videoLinks.length > 0) {
-      videoLinks.map((video, index) => {
-        /*const a = document.createElement('a');
-         a.href = video[0];
-        a.download = index + 1 + '';
-        document.body.appendChild(a);
-        a.click(); */
-        //document.body.removeChild(a);
+      let counter = 1;
+      eachLimit(videoLinks, 3, (video, done) => {
         console.log(video[0]);
-        download(video[0], index + 1 + '_video.mp4');
+        download(video[0], counter + '_video.mp4', done);
+        counter++;
       });
     }
   }, [videoLinks]);
