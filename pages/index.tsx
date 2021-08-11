@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, CSSProperties } from 'react';
+import ReactDOM from 'react-dom';
 import fetchProgress from '../utils/fetch-progress';
 import { eachLimit } from 'async';
 import Head from 'next/head';
@@ -7,48 +8,20 @@ import styles from '../styles/Home.module.css';
 import { useDropzone, FileWithPath } from 'react-dropzone';
 import XLSX from 'xlsx';
 import dynamic from 'next/dynamic';
+import ProgressBar from '../components/progressBar';
+import DownloadElement from '../components/downloadElement';
 
-function downloadFile(file: string) {
-  // Create a link and set the URL using `createObjectURL`
-  const link = document.createElement('a');
-  link.style.display = 'none';
-  link.href = URL.createObjectURL(file);
-  //link.download = file.name;
-
-  // It needs to be added to the DOM so it can be clicked
-  document.body.appendChild(link);
-  link.click();
-
-  // To make this work on Firefox we need to wait
-  // a little while before removing it.
-  setTimeout(() => {
-    URL.revokeObjectURL(link.href);
-    link.parentNode && link.parentNode.removeChild(link);
-  }, 0);
-}
-function download(url: string, filename: string, done: any) {
-  fetch(url)
-    .then(
-      fetchProgress({
-        onProgress(progress) {
-          console.log({ progress });
-        },
-        onError(err) {
-          console.log(err);
-        },
-        onComplete() {
-          done();
-        },
-      }),
-    )
-    .then(function (t) {
-      return t.blob().then((b) => {
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(b);
-        a.setAttribute('download', filename);
-        a.click();
-      });
-    });
+function download(url: string, filename: string, numerics: string, done: any) {
+  var temp = document.createElement('div');
+  ReactDOM.render(
+    <DownloadElement
+      url={url}
+      filename={filename}
+      numerics={numerics}
+      done={done}
+    />,
+    temp,
+  );
 }
 
 const baseStyle = {
@@ -74,8 +47,12 @@ const activeStyle = { borderColor: '#2196f3' };
 const acceptStyle = { borderColor: '#00e676' };
 const rejectStyle = { borderColor: '#ff1744' };
 
+type dobleArray = [string[]];
+
 export default function Home() {
-  const [videoLinks, setVideoLinks] = useState([]);
+  const [videoLinks, setVideoLinks] = useState<dobleArray>(
+    [] as unknown as dobleArray,
+  );
   const onDrop = useCallback((acceptedFiles) => {
     // Do something with the files
     acceptedFiles.map((file: File) => {
@@ -120,7 +97,7 @@ export default function Home() {
   const files = acceptedFiles.map((file: FileWithPath) => (
     <li key={file.path}>
       <span className="rounded-lg bg-gray-300 uppercase px-5 py-1 font-bold mr-5 text-white">
-        {file.path} - {file.size} bytes
+        {file.path}
       </span>
       <span className="rounded-3xl bg-green-700 uppercase px-5 py-1 font-bold mr-5 text-green-50">
         {videoLinks.length} links
@@ -128,12 +105,34 @@ export default function Home() {
     </li>
   ));
   const startDownload = useCallback(() => {
+    const re = /([\w\d_-]*)\.?[^\\\/]*$/i;
     if (videoLinks.length > 0) {
       let counter = 1;
-      eachLimit(videoLinks, 3, (video, done) => {
-        console.log(video[0]);
-        download(video[0], counter + '_video.mp4', done);
-        counter++;
+      eachLimit(videoLinks, 3, (video: string[], done) => {
+        if (
+          video &&
+          video[0] &&
+          video[0].length > 0 &&
+          video[0].match(re) &&
+          video[0].match(re)!.length > 1
+        ) {
+          if (video[0].match(re)!.length > 1) {
+            download(
+              video[0],
+              video[0].match(re)![1],
+              '_file_' + counter,
+              done,
+            );
+          } else if (video[0].match(re)!.length > 0) {
+            download(
+              video[0],
+              video[0].match(re)![0],
+              '_file_' + counter,
+              done,
+            );
+          }
+          counter++;
+        }
       });
     }
   }, [videoLinks]);
@@ -175,6 +174,10 @@ export default function Home() {
             Start Downloading
           </button>
         )}
+        <div className="mt-10">
+          <label></label>
+          <div id="current" style={{ width: '300px' }}></div>
+        </div>
       </main>
 
       <footer className={styles.footer}></footer>
